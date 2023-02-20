@@ -1,13 +1,12 @@
 import vue from '@vitejs/plugin-vue'
-import {resolve} from 'path'
+import { resolve } from 'path'
 import IconsResolver from 'unplugin-icons/resolver'
 import Icons from 'unplugin-icons/vite'
-import {ElementPlusResolver} from 'unplugin-vue-components/resolvers'
+import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 import Components from 'unplugin-vue-components/vite'
-import {UserConfig} from 'vite'
+import { UserConfig } from 'vite'
 import svgLoader from 'vite-svg-loader'
 // import { createSvgIconsPlugin } from 'vite-plugin-svg-icons'
-
 
 export default () => {
     const config: UserConfig = {
@@ -42,8 +41,11 @@ export default () => {
             Components({
                 dirs: ['src/views', 'src/components'],
                 resolvers: [
-                    ElementPlusResolver({importStyle: 'sass'}),
-                    IconsResolver({prefix: 'icon', enabledCollections: ['ep']})
+                    ElementPlusResolver({ importStyle: 'sass' }),
+                    IconsResolver({
+                        prefix: 'icon',
+                        enabledCollections: ['ep']
+                    })
                 ],
                 dts: true
             }),

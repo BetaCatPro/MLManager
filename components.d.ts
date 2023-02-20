@@ -6,15 +6,15 @@ import '@vue/runtime-core'
 export {}
 
 declare module '@vue/runtime-core' {
-  export interface GlobalComponents {
-    ElButton: typeof import('element-plus/es')['ElButton']
-    ElIcon: typeof import('element-plus/es')['ElIcon']
-    Home: typeof import('./src/views/Home/index.vue')['default']
-    IconEpBaseball: typeof import('~icons/ep/baseball')['default']
-    IconEpFold: typeof import('~icons/ep/fold')['default']
-    MainLayout: typeof import('./src/components/layout/MainLayout.vue')['default']
-    NotFound: typeof import('./src/views/NotFound/index.vue')['default']
-    RouterLink: typeof import('vue-router')['RouterLink']
-    RouterView: typeof import('vue-router')['RouterView']
-  }
+    export interface GlobalComponents {
+        ElButton: typeof import('element-plus/es')['ElButton']
+        ElIcon: typeof import('element-plus/es')['ElIcon']
+        Home: typeof import('./src/views/Home/index.vue')['default']
+        IconEpBaseball: typeof import('~icons/ep/baseball')['default']
+        IconEpFold: typeof import('~icons/ep/fold')['default']
+        MainLayout: typeof import('./src/components/layout/MainLayout.vue')['default']
+        NotFound: typeof import('./src/views/NotFound/index.vue')['default']
+        RouterLink: typeof import('vue-router')['RouterLink']
+        RouterView: typeof import('vue-router')['RouterView']
+    }
 }

@@ -1,15 +1,13 @@
 <template>
     <div class="home-page">
         <el-button type="primary">Primary</el-button>
-        <IconEpFold class="v-icon"/>
-        <icon-ep-fold class="v-icon"/>
+        <IconEpFold class="v-icon" />
+        <icon-ep-fold class="v-icon" />
         <IconEpBaseball class="v-icon"></IconEpBaseball>
     </div>
 </template>
 
-<script setup lang="ts">
-
-</script>
+<script setup lang="ts"></script>
 
 <style scoped lang="scss">
 .v-icon {

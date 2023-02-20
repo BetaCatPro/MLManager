@@ -1,6 +1,5 @@
 import { defineAsyncComponent } from 'vue'
 
-
 export default {
     install(app: { component: (arg0: string, arg1: unknown) => void }) {
         // 获取当前路径任意文件夹下的 index.vue 文件
