@@ -2,7 +2,7 @@ import { defineAsyncComponent } from 'vue'
 
 
 export default {
-    install(app) {
+    install(app: { component: (arg0: string, arg1: unknown) => void }) {
         // 获取当前路径任意文件夹下的 index.vue 文件
         const components = import.meta.glob('./*/index.vue')
         // 遍历获取到的组件模块
