@@ -4,8 +4,9 @@
     "version": "0.1.0",
     "scripts": {
         "prepare": "husky install",
-        "dev": "vite",
-        "build": "vue-tsc && vite build",
+        "dev": "vite serve --mode development",
+        "build:dev": "vue-tsc --noEmit && vite build --mode development",
+        "build:prod": "vue-tsc --noEmit && vite build --mode production",
         "preview": "vite preview",
         "lint": "eslint . --ext .vue,.js,.ts,.jsx,.tsx --fix",
         "lint:style": "stylelint \"./**/*.{css,vue,html}\" --fix",

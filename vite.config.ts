@@ -34,6 +34,7 @@ export default () => {
         plugins: [
             vue(),
             svgLoader(),
+            // 自定义 svg 指令
             // createSvgIconsPlugin({
             //     iconDirs: [resolve(process.cwd(), '@/assets/icons')],
             //     symbolId: 'icon-[name]'

@@ -3,7 +3,7 @@ import { showMessage } from './status'
 import { ElMessage } from 'element-plus'
 
 const defaultConfig = {
-    timeout: 50000,
+    timeout: 1000,
     baseURL: import.meta.env.VITE_APP_URL
 }
 const axiosInstance = axios.create(defaultConfig)
