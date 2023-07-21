@@ -1,11 +1,10 @@
 <template>
     <div class="app-wrapper">
-        <Header/>
+        <Header />
         <div class="main-container">
-            <AppMain/>
+            <AppMain />
         </div>
     </div>
 </template>
 
-<script setup lang="ts">
-</script>
+<script setup lang="ts"></script>

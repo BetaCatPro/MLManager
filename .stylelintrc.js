@@ -1,21 +1,10 @@
 module.exports = {
+    plugins: ['stylelint-order', 'stylelint-scss'],
+    customSyntax: 'postcss-html',
     extends: [
         'stylelint-config-standard',
         'stylelint-config-prettier',
-        'stylelint-config-recommended-less',
-        'stylelint-config-standard-vue'
-    ],
-    plugins: ['stylelint-order'],
-    // 不同格式的文件指定自定义语法
-    overrides: [
-        {
-            files: ['**/*.(less|css|vue|html)'],
-            customSyntax: 'postcss-less'
-        },
-        {
-            files: ['**/*.(html|vue)'],
-            customSyntax: 'postcss-html'
-        }
+        'stylelint-config-html'
     ],
     ignoreFiles: [
         '**/*.js',

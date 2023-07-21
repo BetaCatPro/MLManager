@@ -2,5 +2,4 @@
     <div class="header">Header</div>
 </template>
 
-<script setup lang="ts">
-</script>
+<script setup lang="ts"></script>

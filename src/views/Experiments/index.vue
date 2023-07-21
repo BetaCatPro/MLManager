@@ -1,14 +1,13 @@
 <template>
     <div class="home-page">
-        Exps
+        <IconEpFold />
     </div>
 </template>
 
 <script setup lang="ts">
-import {getAllExps} from '@/api/experiments'
+import { getAllExps } from '@/api/experiments'
 
-// getAllExps('/all').then(res => {
-//     console.log(res)
-// })
+getAllExps('/experiments').then((res) => {
+    console.log(res)
+})
 </script>
-
