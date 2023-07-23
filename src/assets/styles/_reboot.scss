@@ -20,7 +20,10 @@ html {
 html,
 body,
 #app {
+    width: 100%;
     height: 100%;
+    margin: 0;
+    padding: 0;
 }
 
 /**
@@ -29,6 +32,13 @@ body,
 
 main {
     display: block;
+}
+
+ul,
+li {
+    margin: 0;
+    padding: 0;
+    list-style: none;
 }
 
 /**
