@@ -8,8 +8,7 @@
                 </div>
                 <div class="info">
                     <span>Date: </span>
-                    <el-icon>
-                        <Timer style="color: rgb(205 58 112)" /> </el-icon
+                    <el-icon> <Timer style="color: rgb(205 58 112)" /> </el-icon
                     >{{ exp_data.date }}
                 </div>
                 <div class="info">
@@ -79,9 +78,7 @@
                         <template #default="scope">
                             <div style="display: flex; align-items: center">
                                 <el-icon>
-                                    <Histogram
-                                        style="color: rgb(68 55 207)"
-                                    />
+                                    <Histogram style="color: rgb(68 55 207)" />
                                 </el-icon>
                                 <span style="margin-left: 10px">{{
                                     scope.row.value

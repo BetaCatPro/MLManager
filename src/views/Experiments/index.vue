@@ -84,9 +84,7 @@
                         <template #default="scope">
                             <div style="display: flex; align-items: center">
                                 <el-icon>
-                                    <Platform
-                                        style="color: rgb(93 148 235)"
-                                    />
+                                    <Platform style="color: rgb(93 148 235)" />
                                 </el-icon>
                                 <span style="margin-left: 10px">{{
                                     scope.row.source
@@ -132,7 +130,7 @@
                     </el-table-column>
                 </el-table>
                 <el-pagination
-                    style=" justify-content: center;margin-top: 10px"
+                    style="justify-content: center; margin-top: 10px"
                     background
                     layout="prev, pager, next"
                     :default-page-size="6"
