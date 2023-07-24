@@ -14,6 +14,7 @@ dist-ssr
 
 # Editor directories and files
 ml_tmp
+MLManagerServer/data
 .vscode
 !.vscode/extensions.json
 .idea

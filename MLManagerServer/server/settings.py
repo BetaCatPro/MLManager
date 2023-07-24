@@ -107,7 +107,7 @@ DATABASES = {
         'NAME': 'ml',
         'USER': 'root',
         'PASSWORD': 'root',
-        'HOST': '192.168.65.132',
+        'HOST': '192.168.65.131',
         'PORT': '3306',
     }
 }
