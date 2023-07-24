@@ -17,10 +17,9 @@ const routes: RouteRecordRaw[] = [
                 component: () => import('@/views/ExperimentsDetails/index.vue')
             },
             {
-                path: '/expdetail/:id/metrics',
-                name: 'ExperimentsDetailsMetrics',
-                component: () =>
-                    import('@/views/ExperimentsDetailsMetrics/index.vue')
+                path: '/metrics',
+                name: 'Metrics',
+                component: () => import('@/views/ExperimentsMetrics/index.vue')
             },
             {
                 path: '/models',

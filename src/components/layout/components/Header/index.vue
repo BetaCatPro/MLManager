@@ -14,7 +14,7 @@
                 @select="handleSelect"
             >
                 <el-menu-item index="1">Experiments</el-menu-item>
-                <el-menu-item index="2">Models</el-menu-item>
+                <!-- <el-menu-item index="2">Models</el-menu-item> -->
             </el-menu>
         </div>
     </div>
@@ -29,7 +29,7 @@ const router = useRouter()
 const activeIndex = ref('1')
 const handleSelect = (key: string) => {
     let router_path = key === '1' ? 'experiments' : 'models'
-    router.push({ path: router_path })
+    router.push({ path: `/${router_path}` })
 }
 
 const refresh = () => {

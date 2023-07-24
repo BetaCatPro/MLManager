@@ -2,27 +2,67 @@
     <div class="home-page">
         <SideBar @getExpInfo="getExpInfo" />
         <div class="right-banner">
-            <el-card class="box-card">
-                <div>
-                    <div class="title">{{ expName }}</div>
-                    <div class="desc">
-                        Experiment ID: 0 Artifact Location:
-                        file:///D:/Code/Web/MLFLow/mlruns/0
+            <div class="box-card">
+                <el-card class="inner-card">
+                    <div>
+                        <div class="title">{{ expName }}</div>
+                        <div class="desc">
+                            Experiment ID: 0 Artifact Location:
+                            file:///D:/Code/Web/MLFLow/mlruns/0
+                        </div>
                     </div>
-                </div>
-                <div>
-                    <div class="title">实验描述</div>
-                    <div class="desc">外部算法比较的对比实验</div>
-                </div>
-            </el-card>
+                </el-card>
+                <el-card class="inner-card">
+                    <div>
+                        <div class="title">实验描述</div>
+                        <div class="desc">外部算法比较的对比实验</div>
+                    </div>
+                </el-card>
+            </div>
             <el-divider />
-            <el-row class="refresh-row">
-                <el-col :span="24">
+            <el-row class="refresh-row" :gutter="10">
+                <el-col :span="2">
                     <el-button type="primary">
                         <el-icon class="el-icon--right">
                             <Refresh class="refresh" /> </el-icon
                         >刷新
                     </el-button>
+                </el-col>
+                <el-col :span="2">
+                    <el-button type="success" @click="handleAna">
+                        <el-icon> <View /> </el-icon>查看分析
+                    </el-button>
+                </el-col>
+                <el-col :span="11"></el-col>
+                <el-col :span="4">
+                    <el-select
+                        v-model="exp_dataset.data_set"
+                        clearable
+                        placeholder="选择数据集"
+                    >
+                        <el-option
+                            style="text-indent: 1em"
+                            v-for="item in exp_dataset.data_set_options"
+                            :key="item.value"
+                            :label="item.label"
+                            :value="item.value"
+                        />
+                    </el-select>
+                </el-col>
+                <el-col :span="5">
+                    <el-select
+                        v-model="exp_dataset.data_radio"
+                        clearable
+                        placeholder="选择标记数据划分比例"
+                    >
+                        <el-option
+                            style="text-indent: 1em"
+                            v-for="item in exp_dataset.data_radio_options"
+                            :key="item.value"
+                            :label="item.label"
+                            :value="item.value"
+                        />
+                    </el-select>
                 </el-col>
             </el-row>
             <el-divider />
@@ -184,11 +224,29 @@ import {
     Platform,
     Edit,
     Delete,
-    Grid
+    Grid,
+    View
 } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
+
+let exp_dataset = reactive({
+    data_set: '',
+    data_radio: '',
+    data_set_options: [
+        {
+            label: 'abalone',
+            value: 'abalone'
+        }
+    ],
+    data_radio_options: [
+        {
+            label: '0.025',
+            value: '0.025'
+        }
+    ]
+})
 
 interface User {
     id: number
@@ -237,6 +295,11 @@ let confirmUpdate = () => {
     dialogData.dialogEditVisible = false
 }
 
+let handleAna = () => {
+    router.push({
+        path: `/metrics`
+    })
+}
 const tableData: User[] = [
     {
         id: 0,
@@ -305,6 +368,18 @@ const tableData: User[] = [
         overflow: auto;
         padding: 20px;
         flex: 1;
+
+        .box-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            .inner-card {
+                overflow: auto;
+                width: 49%;
+                max-height: 200px;
+            }
+        }
 
         .title {
             text-size-adjust: 100%;
