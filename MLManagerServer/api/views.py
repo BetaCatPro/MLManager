@@ -1,12 +1,14 @@
 import random
-from django.http import JsonResponse
-from django.views import View
-from api.models import AlgExperiments, AlgExperimentsList, AlgMetrics, AlgModels, AlgParameters
-
 import os
 import pandas as pd
 import uuid 
 
+from django.views import View
+from django.core.serializers import serialize
+from django.http import JsonResponse, HttpResponse, Http404, StreamingHttpResponse
+from django.http import QueryDict
+
+from api.models import AlgExperiments, AlgExperimentsList, AlgMetrics, AlgModels, AlgParameters
 
 class insertToMySQL(View):
     def insertOneExpData(self, exp_name, exp_desc):
@@ -93,26 +95,97 @@ class insertToMySQL(View):
 
 class ExperimentsView(View):
     def get(self, request):
-        return JsonResponse({'status': 200, 'code': 10000, 'msg': 'ok'})
+        all_exp = AlgExperiments.objects.all()
+        
+        resp = {
+            'id': all_exp.id,
+            'name': all_exp.name,
+            'description': all_exp.description,
+            'time': all_exp.time,
+        }
+        return JsonResponse({'status': 200, 'code': 10000, 'msg': resp}, safe=False)
+
+    def delete(self, request):
+        delete = QueryDict(request.body)
+        master_exp_id = delete.get('master_exp_id')
+        AlgExperiments.objects.filter(id=master_exp_id).delete()
+        return JsonResponse({'status': 200, 'code': 10000, 'msg': 'ok'}, safe=False)
+    
+    def put(self, request):
+        update = QueryDict(request.body)
+        master_exp_id = update.get('master_exp_id')
+        master_exp_name = update.get('master_exp_name')
+        AlgExperiments.objects.filter(id=master_exp_id).update(name = master_exp_name)
+        return JsonResponse({'status': 200, 'code': 10000, 'msg': 'ok'}, safe=False)
+
 
 
 class ExperimentsListView(View):
     def get(self, request):
-        return JsonResponse({'status': 200, 'code': 10000, 'msg': 'ok'})
+        master_exp_id = request.GET.get('master_exp_id', 0)
+        dataset = request.GET.get('data_set', 'abalone')
+        ratio = request.GET.get('data_ratio', '0.025')
+        
+        exp_list = AlgExperimentsList.objects.filter(experiment=master_exp_id, dataset=dataset, ratio=ratio)
+        resp_data = serialize('json', exp_list)
+        return HttpResponse(resp_data, "application/json")
+    
+    def delete(self, request):
+        delete = QueryDict(request.body)
+        exp_id = delete.get('exp_id')
+        AlgExperimentsList.objects.filter(id=exp_id).delete()
+        return JsonResponse({'status': 200, 'code': 10000, 'msg': 'ok'}, safe=False)
+    
+    def put(self, request):
+        update = QueryDict(request.body)
+        exp_id = update.get('exp_id')
+        exp_name = update.get('exp_name')
+        AlgExperimentsList.objects.filter(id=exp_id).update(name = exp_name)
+        return JsonResponse({'status': 200, 'code': 10000, 'msg': 'ok'}, safe=False)
     
 class ExpParametersView(View):
     def get(self, request):
-        return JsonResponse({'status': 200, 'code': 10000, 'msg': 'ok'})
+        exp_list_detail_id = request.GET.get('exp_detail_id')
+        params = AlgParameters.objects.filter(exp_id=exp_list_detail_id)
+        
+        resp_data = {
+            'name': params.name,
+            'value': params.value
+        }
+        return JsonResponse({'status': 200, 'code': 10000, 'msg': resp_data}, safe=False)
     
 class ExpMetricsView(View):
     def get(self, request):
-        return JsonResponse({'status': 200, 'code': 10000, 'msg': 'ok'})
-
-class ExpModelsView(View):
-    def get(self, request):
-        return JsonResponse({'status': 200, 'code': 10000, 'msg': 'ok'})
+        exp_list_detail_id = request.GET.get('exp_detail_id')
+        params = AlgMetrics.objects.filter(exp_id=exp_list_detail_id)
+        
+        resp_data = {
+            'name': params.name,
+            'value': params.value
+        }
+        return JsonResponse({'status': 200, 'code': 10000, 'msg': resp_data}, safe=False)
 
 
 class DownloadModelsView(View):
     def get(self, request):
-        return JsonResponse({'status': 200, 'code': 10000, 'msg': 'ok'})
+        try:
+            pass
+            # history = request.GET.get('history', 0)
+            # self_ver_history = request.GET.get('self_history', '')
+
+            # if self_ver_history:
+            #     res = SelfHistory.objects.filter(history=self_ver_history).first()
+            # else:
+            #     res = ExpertGraHistory.objects.filter(history=int(history)).first()
+            # weight = [res.APA_weight, res.Arc_weight, res.Variance_weight, res.SA_weight, res.RMS_weight]
+            # xgboost_result(weight)
+            # try:
+            #     file_path = file_pathCSV
+            #     response = StreamingHttpResponse(open(file_path, 'rb'))
+            #     response['content_type'] = "application/octet-stream"
+            #     response['Content-Disposition'] = 'attachment; filename=' + os.path.basename(file_path)
+            #     return response
+            # except Exception as e:
+            #     raise Http404
+        except Exception:
+            raise Http404
