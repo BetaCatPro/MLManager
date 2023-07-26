@@ -18,7 +18,6 @@
         ]
     },
     "dependencies": {
-        "@vueuse/core": "^9.1.0",
         "@vueuse/head": "^0.7.9",
         "axios": "^0.27.2",
         "element-plus": "^2.2.12",

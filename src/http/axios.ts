@@ -6,7 +6,7 @@ const defaultConfig = {
     timeout: 1000,
     baseURL: import.meta.env.VITE_APP_URL
 }
-const axiosInstance = axios.create(defaultConfig)
+export const axiosInstance = axios.create(defaultConfig)
 
 //http request 拦截器
 axiosInstance.interceptors.request.use(
@@ -45,7 +45,7 @@ axiosInstance.interceptors.response.use(
 // 封装 GET POST 请求并导出
 export function request(url = '', params = {}, type = 'POST') {
     //设置 url params type 的默认值
-    return new Promise((resolve, reject) => {
+    return new Promise<any>((resolve, reject) => {
         let promise
         if (type.toUpperCase() === 'GET') {
             promise = axiosInstance({

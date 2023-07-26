@@ -15,7 +15,7 @@
                 <el-card class="inner-card">
                     <div>
                         <div class="title">实验描述</div>
-                        <div class="desc">外部算法比较的对比实验</div>
+                        <div class="desc">{{ expDesc }}</div>
                     </div>
                 </el-card>
             </div>
@@ -57,7 +57,7 @@
                     >
                         <el-option
                             style="text-indent: 1em"
-                            v-for="item in exp_dataset.data_radio_options"
+                            v-for="item in exp_dataset.data_ratio_options"
                             :key="item.value"
                             :label="item.label"
                             :value="item.value"
@@ -228,6 +228,7 @@ import {
     View
 } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
+import { getExpsList } from '@/api/experiments'
 
 const router = useRouter()
 
@@ -240,7 +241,7 @@ let exp_dataset = reactive({
             value: 'abalone'
         }
     ],
-    data_radio_options: [
+    data_ratio_options: [
         {
             label: '0.025',
             value: '0.025'
@@ -248,8 +249,26 @@ let exp_dataset = reactive({
     ]
 })
 
-interface User {
-    id: number
+const expName = ref('')
+const expDesc = ref('')
+let dialogData = reactive({
+    currentItem: {
+        id: '',
+        name: '',
+        created: '',
+        duration: '',
+        source: '',
+        version: '',
+        models: ''
+    },
+    dialogDeleteVisible: false,
+    deleteMsg: '',
+    dialogEditVisible: false,
+    editMsg: ''
+})
+
+interface ExpList {
+    id: string
     name: string
     created: string
     duration: string
@@ -257,17 +276,28 @@ interface User {
     version: string
     models: string
 }
-const expName = ref('')
-let dialogData = reactive({
-    currentItem: { id: 0, name: '' },
-    dialogDeleteVisible: false,
-    deleteMsg: '',
-    dialogEditVisible: false,
-    editMsg: ''
-})
 
-let getExpInfo = (target: any) => {
+let tableData = ref<Array<ExpList>>([])
+
+let getExpInfo = async (target: any) => {
     expName.value = target.name
+    expDesc.value = target.desc
+
+    tableData.value = []
+    let res = await getExpsList('/experiment_list', {
+        master_exp_id: target.id
+    })
+    res.data.map((item: any) => {
+        tableData.value.push({
+            id: item.pk,
+            name: item.fields.name,
+            created: item.fields.time,
+            duration: item.fields.duration,
+            source: item.fields.runid,
+            version: item.fields.ratio,
+            models: item.fields.dataset
+        })
+    })
 }
 
 const toDetail = (item: any) => {
@@ -276,22 +306,22 @@ const toDetail = (item: any) => {
     })
 }
 
-const handleEdit = (index: number, row: User) => {
-    console.log(index, row)
+const handleEdit = async (index: number, row: ExpList) => {
     dialogData.editMsg = row.name
     dialogData.dialogEditVisible = true
+    dialogData.currentItem = row
 }
-const handleDelete = (index: number, row: User) => {
-    console.log(index, row)
+const handleDelete = (index: number, row: ExpList) => {
     dialogData.deleteMsg = `是否删除 ${row.name} 实验的数据`
     dialogData.dialogDeleteVisible = true
+    dialogData.currentItem = row
 }
 
 let confirmDelete = () => {
     dialogData.dialogDeleteVisible = false
 }
 
-let confirmUpdate = () => {
+let confirmUpdate = async () => {
     dialogData.dialogEditVisible = false
 }
 
@@ -300,62 +330,6 @@ let handleAna = () => {
         path: `/metrics`
     })
 }
-const tableData: User[] = [
-    {
-        id: 0,
-        name: 'Tom',
-        created: '2016-05-03',
-        duration: '8.5s',
-        source: 'mlflows',
-        version: 'v1.0',
-        models: 'sklearn'
-    },
-    {
-        id: 1,
-        name: 'Tom',
-        created: '2016-05-03',
-        duration: '1.5s',
-        source: 'mlflows',
-        version: 'v1.0',
-        models: 'sklearn'
-    },
-    {
-        id: 0,
-        name: 'Tom',
-        created: '2018-05-03',
-        duration: '4.5s',
-        source: 'mlflows',
-        version: 'v1.0',
-        models: 'sklearn'
-    },
-    {
-        id: 0,
-        name: 'Tom',
-        created: '2018-05-03',
-        duration: '4.5s',
-        source: 'mlflows',
-        version: 'v1.0',
-        models: 'sklearn'
-    },
-    {
-        id: 0,
-        name: 'Tom',
-        created: '2018-05-03',
-        duration: '4.5s',
-        source: 'mlflows',
-        version: 'v1.0',
-        models: 'sklearn'
-    },
-    {
-        id: 0,
-        name: 'Tom',
-        created: '2018-05-03',
-        duration: '4.5s',
-        source: 'mlflows',
-        version: 'v1.0',
-        models: 'sklearn'
-    }
-]
 </script>
 
 <style lang="scss" scoped>

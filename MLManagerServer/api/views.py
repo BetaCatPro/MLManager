@@ -96,14 +96,8 @@ class insertToMySQL(View):
 class ExperimentsView(View):
     def get(self, request):
         all_exp = AlgExperiments.objects.all()
-        
-        resp = {
-            'id': all_exp.id,
-            'name': all_exp.name,
-            'description': all_exp.description,
-            'time': all_exp.time,
-        }
-        return JsonResponse({'status': 200, 'code': 10000, 'msg': resp}, safe=False)
+        resp_data = serialize('json', all_exp)
+        return HttpResponse(resp_data, "application/json")
 
     def delete(self, request):
         delete = QueryDict(request.body)
@@ -111,10 +105,9 @@ class ExperimentsView(View):
         AlgExperiments.objects.filter(id=master_exp_id).delete()
         return JsonResponse({'status': 200, 'code': 10000, 'msg': 'ok'}, safe=False)
     
-    def put(self, request):
-        update = QueryDict(request.body)
-        master_exp_id = update.get('master_exp_id')
-        master_exp_name = update.get('master_exp_name')
+    def post(self, request):
+        master_exp_id =  request.POST.get('master_exp_id')
+        master_exp_name =  request.POST.get('master_exp_name')
         AlgExperiments.objects.filter(id=master_exp_id).update(name = master_exp_name)
         return JsonResponse({'status': 200, 'code': 10000, 'msg': 'ok'}, safe=False)
 
@@ -126,7 +119,7 @@ class ExperimentsListView(View):
         dataset = request.GET.get('data_set', 'abalone')
         ratio = request.GET.get('data_ratio', '0.025')
         
-        exp_list = AlgExperimentsList.objects.filter(experiment=master_exp_id, dataset=dataset, ratio=ratio)
+        exp_list = AlgExperimentsList.objects.filter(experiment=master_exp_id, dataset=dataset, ratio=ratio)[:6]
         resp_data = serialize('json', exp_list)
         return HttpResponse(resp_data, "application/json")
     

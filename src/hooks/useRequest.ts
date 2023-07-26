@@ -1,4 +1,5 @@
 import { toRefs, reactive } from 'vue'
+// import { axiosInstance } from '@/http/axios'
 
 export default (options: any) => {
     const { url } = options
@@ -13,6 +14,10 @@ export default (options: any) => {
         state.loading = true
         try {
             const result = await fetch(url).then((res) => res.json())
+            // const result = await axiosInstance({
+            //     url,
+            //     params
+            // })
             state.data = result
         } catch (e) {
             state.error = true

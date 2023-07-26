@@ -15,7 +15,7 @@
                 <li
                     class="li-box"
                     @click="handleClick(item)"
-                    v-for="item in testItems"
+                    v-for="item in experiments_data"
                     :key="item.id"
                     :class="{ isactive: item.id == curItem }"
                 >
@@ -65,38 +65,39 @@
 </template>
 
 <script setup lang="ts">
-// import useRequest from '@/hooks/useRequest'
+import { getAllExps, updateExpName } from '@/api/experiments'
 import { Search } from '@element-plus/icons-vue'
-import { reactive, ref } from 'vue'
+import { onBeforeMount, reactive, ref } from 'vue'
 
 const emit = defineEmits(['getExpInfo'])
 
-// const { data, loading, error, run } = useRequest({
-//     url: 'https://hn.algolia.com/api/v1/search'
-// })
-// onMounted(() => {
-//     run()
-// })
+let experiments_data = ref<
+    Array<{ id: string; name: string; desc: string; time: string }>
+>([])
+
+onBeforeMount(async () => {
+    let res = await getAllExps('/experiments')
+    res.data.map(
+        (item: {
+            pk: any
+            fields: { name: any; description: any; time: any }
+        }) => {
+            experiments_data.value.push({
+                id: item.pk,
+                name: item.fields.name,
+                desc: item.fields.description,
+                time: item.fields.time
+            })
+        }
+    )
+    emit('getExpInfo', experiments_data.value[0])
+})
 
 let search = ref('')
-let testItems = ref([
-    {
-        id: 1,
-        name: 'Exp1'
-    },
-    {
-        id: 2,
-        name: 'Exp2'
-    },
-    {
-        id: 3,
-        name: 'Exp3'
-    }
-])
-let curItem = ref(1)
+let curItem = ref('1')
 
 let dialogData = reactive({
-    currentItem: { id: 0, name: '' },
+    currentItem: { id: '0', name: '', desc: '', time: '' },
     dialogDeleteVisible: false,
     deleteMsg: '',
     dialogEditVisible: false,
@@ -107,29 +108,51 @@ let handleChange = () => {
     console.log(search.value)
 }
 
-emit('getExpInfo', testItems.value[0])
-let handleClick = (item: { id: number; name: string }) => {
+let handleClick = (item: {
+    id: string
+    name: string
+    desc: string
+    time: string
+}) => {
     curItem.value = item.id
     emit('getExpInfo', item)
 }
 
-let handleEdit = (item: { id: number; name: string }) => {
+let handleEdit = (item: {
+    id: string
+    name: string
+    desc: string
+    time: string
+}) => {
     dialogData.dialogEditVisible = true
     dialogData.editMsg = item.name
     dialogData.currentItem = item
 }
 
-let handleDelete = (item: { id: number; name: string }) => {
+let handleDelete = (item: {
+    id: string
+    name: string
+    desc: string
+    time: string
+}) => {
     dialogData.dialogDeleteVisible = true
     dialogData.deleteMsg = `Experiment "${item.name}" (Experiment ID: ${item.id}) will be deleted.`
     dialogData.currentItem = item
 }
 
-let confirmDelete = () => {
+let confirmDelete = async () => {
     dialogData.dialogDeleteVisible = false
 }
 
-let confirmUpdate = () => {
+let confirmUpdate = async () => {
+    let resp = await updateExpName('/experiments/', {
+        master_exp_id: dialogData.currentItem.id,
+        master_exp_name: dialogData.editMsg
+    })
+    console.log(resp)
+    experiments_data.value.filter(
+        (item) => item.id === dialogData.currentItem.id
+    )[0].name = dialogData.editMsg
     dialogData.dialogEditVisible = false
 }
 </script>
