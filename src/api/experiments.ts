@@ -11,3 +11,7 @@ export const updateExpName = (url: string, params: any) => {
 export const getExpsList = (url: string, params: any) => {
     return request(url, params, 'GET')
 }
+
+export const getExpDetail = (url: string, params: any) => {
+    return request(url, params, 'GET')
+}

@@ -243,8 +243,16 @@ let exp_dataset = reactive({
     ],
     data_ratio_options: [
         {
+            label: '0.005',
+            value: '0.005'
+        },
+        {
             label: '0.025',
             value: '0.025'
+        },
+        {
+            label: '0.050',
+            value: '0.050'
         }
     ]
 })

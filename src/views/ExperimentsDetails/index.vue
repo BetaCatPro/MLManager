@@ -97,13 +97,13 @@
 </template>
 
 <script setup lang="ts">
-import { reactive } from 'vue'
+import { onBeforeMount, reactive } from 'vue'
 import { useRoute } from 'vue-router'
 import { Platform, Timer } from '@element-plus/icons-vue'
+import { getExpDetail } from '@/api/experiments'
 
 const route = useRoute()
 const expId = route.params.id
-console.log(expId)
 
 const exp_data = reactive({
     exp_name: 'sedate-coch-124',
@@ -136,6 +136,11 @@ const paramsData = [
         value: '2016-05-03'
     }
 ]
+
+onBeforeMount(async () => {
+    let resp = await getExpDetail('/experiment_list', { exp_detail_id: expId })
+    console.log(resp.data)
+})
 </script>
 
 <style lang="scss" scoped>

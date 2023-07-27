@@ -136,6 +136,26 @@ class ExperimentsListView(View):
         AlgExperimentsList.objects.filter(id=exp_id).update(name = exp_name)
         return JsonResponse({'status': 200, 'code': 10000, 'msg': 'ok'}, safe=False)
     
+    
+class ExperimentsDetailView(View):
+    def get(self, request):
+        exp_id = request.GET.get('exp_detail_id', 0)
+        
+        exp_list = AlgExperimentsList.objects.filter(id=exp_id)
+        
+        # 获取实验参数
+        exp_params = AlgParameters.objects.filter(exp_id = exp_id)
+        # 获取实验评估指标
+        exp_metrics  = AlgMetrics.objects.filter(exp_id=exp_id)
+        
+        
+        exp_detail_data = dict()
+        exp_detail_data['exp_detail'] = serialize('json', exp_list)
+        exp_detail_data['exp_params'] = serialize('json', exp_params)
+        exp_detail_data['exp_metrics'] = serialize('json', exp_metrics)
+        return HttpResponse(exp_detail_data, "application/json")
+    
+    
 class ExpParametersView(View):
     def get(self, request):
         exp_list_detail_id = request.GET.get('exp_detail_id')
