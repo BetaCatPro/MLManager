@@ -117,22 +117,23 @@ class ExperimentsListView(View):
     def get(self, request):
         master_exp_id = request.GET.get('master_exp_id', 0)
         dataset = request.GET.get('data_set', 'abalone')
-        ratio = request.GET.get('data_ratio', '0.025')
+        ratio = request.GET.get('data_ratio', '0.005')
         
-        exp_list = AlgExperimentsList.objects.filter(experiment=master_exp_id, dataset=dataset, ratio=ratio)[:6]
+        page = request.GET.get('cur_page', 0)
+        
+        exp_list = AlgExperimentsList.objects.filter(experiment=master_exp_id, dataset=dataset, ratio=ratio)[6*page:6*page+6]
         resp_data = serialize('json', exp_list)
         return HttpResponse(resp_data, "application/json")
     
     def delete(self, request):
         delete = QueryDict(request.body)
-        exp_id = delete.get('exp_id')
+        exp_id = delete.get('exp_id', 0)
         AlgExperimentsList.objects.filter(id=exp_id).delete()
         return JsonResponse({'status': 200, 'code': 10000, 'msg': 'ok'}, safe=False)
     
-    def put(self, request):
-        update = QueryDict(request.body)
-        exp_id = update.get('exp_id')
-        exp_name = update.get('exp_name')
+    def post(self, request):
+        exp_id = request.POST.get('exp_id')
+        exp_name = request.POST.get('exp_name')
         AlgExperimentsList.objects.filter(id=exp_id).update(name = exp_name)
         return JsonResponse({'status': 200, 'code': 10000, 'msg': 'ok'}, safe=False)
     
@@ -141,7 +142,7 @@ class ExperimentsDetailView(View):
     def get(self, request):
         exp_id = request.GET.get('exp_detail_id', 0)
         
-        exp_list = AlgExperimentsList.objects.filter(id=exp_id)
+        exp_list = AlgExperimentsList.objects.get(id=exp_id)
         
         # 获取实验参数
         exp_params = AlgParameters.objects.filter(exp_id = exp_id)
@@ -150,10 +151,33 @@ class ExperimentsDetailView(View):
         
         
         exp_detail_data = dict()
-        exp_detail_data['exp_detail'] = serialize('json', exp_list)
-        exp_detail_data['exp_params'] = serialize('json', exp_params)
-        exp_detail_data['exp_metrics'] = serialize('json', exp_metrics)
-        return HttpResponse(exp_detail_data, "application/json")
+        exp_detail_data['exp_detail'] = {
+            'dataset' : exp_list.dataset,
+            'ratio' : exp_list.ratio,
+            'name' : exp_list.name,
+            'runid' : exp_list.runid,
+            'duration' : exp_list.duration,
+            'status' : exp_list.status,
+            'description' : exp_list.description,
+            'tags' : exp_list.tags,
+            'time' : exp_list.time,
+        }
+        
+        parma_list = []
+        for pa in exp_params:
+            parma_list.append({
+            'name' : pa.name,
+            'value': pa.value
+        })
+        exp_detail_data['exp_params'] = parma_list
+        metrics_list = []
+        for metric in exp_metrics:
+            metrics_list.append({
+            'name' : metric.name,
+            'value': metric.value
+        })
+        exp_detail_data['exp_metrics'] = metrics_list
+        return JsonResponse({'status': 200, 'code': 10000, 'msg': exp_detail_data}, safe=False)
     
     
 class ExpParametersView(View):

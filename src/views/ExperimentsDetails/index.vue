@@ -50,46 +50,35 @@
                     <div class="info">{{ exp_data.artifacts }}</div>
                 </div>
             </el-card>
-            <el-card class="box-card">
-                <div>
-                    <div class="name">Parameters</div>
-                    <el-table :data="paramsData" style="width: 100%" border>
-                        <el-table-column label="Name">
-                            <template #default="scope">
-                                <span style="margin-left: 10px">{{
-                                    scope.row.name
-                                }}</span>
-                            </template>
-                        </el-table-column>
-                        <el-table-column label="Value">
-                            <template #default="scope">
-                                <div style="display: flex; align-items: center">
-                                    <span style="margin-left: 10px">{{
-                                        scope.row.value
-                                    }}</span>
-                                </div>
-                            </template>
-                        </el-table-column>
-                    </el-table>
-                </div>
-            </el-card>
         </div>
         <el-divider />
-        <div class="chart">
-            <el-card class="box-card">
+
+        <div class="wrapper-card">
+            <el-card class="box-card chart">
+                <div class="name">Parameters</div>
+                <el-table :data="paramsData" style="width: 100%" border>
+                    <el-table-column label="Name">
+                        <template #default="scope">
+                            <span style="margin-left: 10px">{{
+                                scope.row.name
+                            }}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="Value">
+                        <template #default="scope">
+                            <div style="display: flex; align-items: center">
+                                <span style="margin-left: 10px">{{
+                                    scope.row.value
+                                }}</span>
+                            </div>
+                        </template>
+                    </el-table-column>
+                </el-table>
+            </el-card>
+            <el-card class="box-card chart">
                 <div>
                     <div class="name">Metrics</div>
-                    <div class="wrapper-card">
-                        <el-card class="box-card">
-                            <RadarChart />
-                        </el-card>
-                        <el-card class="box-card">
-                            <RadarChart />
-                        </el-card>
-                        <el-card class="box-card">
-                            <RadarChart />
-                        </el-card>
-                    </div>
+                    <TDBarChart />
                 </div>
             </el-card>
         </div>
@@ -97,15 +86,16 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeMount, reactive } from 'vue'
+import { onBeforeMount, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { Platform, Timer } from '@element-plus/icons-vue'
 import { getExpDetail } from '@/api/experiments'
+import 'echarts-gl'
 
 const route = useRoute()
 const expId = route.params.id
 
-const exp_data = reactive({
+let exp_data = reactive({
     exp_name: 'sedate-coch-124',
     run_id: '41235135b1kjb5k1jbkj123k1j4bk',
     date: '2012-12-12',
@@ -119,27 +109,30 @@ const exp_data = reactive({
     artifacts: 'file://cscscs'
 })
 
-const paramsData = [
-    {
-        id: 0,
-        name: 'Tom',
-        value: '2016-05-03'
-    },
-    {
-        id: 0,
-        name: 'L1',
-        value: '2016-05-03'
-    },
-    {
-        id: 0,
-        name: 'Tom',
-        value: '2016-05-03'
-    }
-]
+let paramsData = ref()
+let metricsData = ref()
 
 onBeforeMount(async () => {
-    let resp = await getExpDetail('/experiment_list', { exp_detail_id: expId })
-    console.log(resp.data)
+    let resp = await getExpDetail('/experiment_detail', {
+        exp_detail_id: expId
+    })
+    if (resp.status === 200) {
+        let exp_detail = resp.data.msg.exp_detail
+        let exp_detail_params = resp.data.msg.exp_params
+        let exp_detail_metrics = resp.data.msg.exp_metrics
+
+        exp_data.exp_name = exp_detail.name
+        exp_data.run_id = exp_detail.runid
+        exp_data.date = exp_detail.time
+        exp_data.source = exp_detail.dataset
+        exp_data.duration = exp_detail.duration
+        exp_data.status = exp_detail.status
+        exp_data.desc = exp_detail.description
+        exp_data.tags = exp_detail.tags
+
+        paramsData.value = exp_detail_params
+        metricsData.value = exp_detail_metrics
+    }
 })
 </script>
 
@@ -148,7 +141,7 @@ onBeforeMount(async () => {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    flex-wrap: nowrap;
+    // flex-wrap: nowrap;
 
     .box-card {
         overflow: auto;
@@ -157,7 +150,7 @@ onBeforeMount(async () => {
         height: 220px;
 
         .name {
-            margin-bottom: 13px;
+            // margin-bottom: 13px;
             font-size: 21px;
             color: rgb(31 39 45);
             text-size-adjust: 100%;
@@ -194,24 +187,9 @@ onBeforeMount(async () => {
             }
         }
     }
-}
 
-.chart {
-    margin: 10px;
-    height: 570px;
-
-    .wrapper-card {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: nowrap;
-        height: 100%;
-
-        .box-card {
-            overflow: auto;
-            width: 100%;
-            height: 100%;
-        }
+    .chart {
+        height: 400px;
     }
 }
 </style>

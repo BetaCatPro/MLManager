@@ -38,6 +38,7 @@
         "commitlint": "^17.4.4",
         "compression": "^1.7.4",
         "echarts": "^4.9.0",
+        "echarts-gl": "^1.1.2",
         "eslint": "^8.21.0",
         "eslint-config-prettier": "^8.5.0",
         "eslint-plugin-prettier": "^4.2.1",

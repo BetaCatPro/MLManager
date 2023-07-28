@@ -228,7 +228,12 @@ import {
     View
 } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
-import { getExpsList } from '@/api/experiments'
+import {
+    deleteExpDetail,
+    getExpsList,
+    updateExpDetail
+} from '@/api/experiments'
+import { ElMessage } from 'element-plus'
 
 const router = useRouter()
 
@@ -325,11 +330,32 @@ const handleDelete = (index: number, row: ExpList) => {
     dialogData.currentItem = row
 }
 
-let confirmDelete = () => {
+let confirmDelete = async () => {
+    let resp = await deleteExpDetail('/experiment_list/', {
+        exp_id: dialogData.currentItem.id
+    })
+    if (resp.data.msg === 'ok') {
+        ElMessage('删除成功')
+    }
+    tableData.value = tableData.value.filter(
+        (item) => item.id !== dialogData.currentItem.id
+    )
+    dialogData.dialogEditVisible = false
     dialogData.dialogDeleteVisible = false
 }
 
 let confirmUpdate = async () => {
+    let resp = await updateExpDetail('/experiment_list/', {
+        exp_id: dialogData.currentItem.id,
+        exp_name: dialogData.editMsg
+    })
+    if (resp.data.msg === 'ok') {
+        ElMessage('修改成功')
+    }
+    tableData.value.filter(
+        (item) => item.id === dialogData.currentItem.id
+    )[0].name = dialogData.editMsg
+    dialogData.dialogEditVisible = false
     dialogData.dialogEditVisible = false
 }
 

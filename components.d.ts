@@ -58,5 +58,6 @@ declare module '@vue/runtime-core' {
         RouterView: typeof import('vue-router')['RouterView']
         Sidebar: typeof import('./src/components/layout/components/Sidebar/index.vue')['default']
         SideBar: typeof import('./src/views/Experiments/components/SideBar/index.vue')['default']
+        TDBarChart: typeof import('./src/components/charts/TDBarChart.vue')['default']
     }
 }

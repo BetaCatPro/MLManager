@@ -58,6 +58,12 @@ export function request(url = '', params = {}, type = 'POST') {
                 url,
                 data: params
             })
+        } else if (type.toUpperCase() === 'DELETE') {
+            promise = axiosInstance({
+                method: 'DELETE',
+                url,
+                data: params
+            })
         }
         //处理返回
         ;(promise as AxiosPromise)

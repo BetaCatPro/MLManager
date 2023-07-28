@@ -65,8 +65,9 @@
 </template>
 
 <script setup lang="ts">
-import { getAllExps, updateExpName } from '@/api/experiments'
+import { getAllExps, updateExpName, deleteExpName } from '@/api/experiments'
 import { Search } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
 import { onBeforeMount, reactive, ref } from 'vue'
 
 const emit = defineEmits(['getExpInfo'])
@@ -141,6 +142,16 @@ let handleDelete = (item: {
 }
 
 let confirmDelete = async () => {
+    let resp = await deleteExpName('/experiments', {
+        master_exp_id: dialogData.currentItem.id
+    })
+    if (resp.data.msg === 'ok') {
+        ElMessage('删除成功')
+    }
+
+    experiments_data.value = experiments_data.value.filter(
+        (item) => item.id !== dialogData.currentItem.id
+    )
     dialogData.dialogDeleteVisible = false
 }
 
@@ -149,7 +160,9 @@ let confirmUpdate = async () => {
         master_exp_id: dialogData.currentItem.id,
         master_exp_name: dialogData.editMsg
     })
-    console.log(resp)
+    if (resp.data.msg === 'ok') {
+        ElMessage('修改成功')
+    }
     experiments_data.value.filter(
         (item) => item.id === dialogData.currentItem.id
     )[0].name = dialogData.editMsg
