@@ -306,7 +306,7 @@ let getExpInfo = async (target: any) => {
             name: item.fields.name,
             created: item.fields.time,
             duration: item.fields.duration,
-            source: item.fields.runid,
+            source: item.fields.dataset,
             version: item.fields.ratio,
             models: item.fields.dataset
         })

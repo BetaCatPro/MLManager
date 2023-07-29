@@ -8,7 +8,9 @@
 
 <script lang="ts" setup>
 import { ECharts, EChartsOption, init } from 'echarts'
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onUnmounted, watch } from 'vue'
+import { useMlStateStore } from '@/stores/mlstore'
+import { storeToRefs } from 'pinia'
 import 'echarts/theme/macarons'
 
 const props = defineProps({
@@ -22,16 +24,22 @@ const props = defineProps({
     },
     height: {
         type: String,
-        default: '400px'
+        default: '320px'
     }
+})
+
+const { exp_detail_data } = storeToRefs(useMlStateStore())
+// const exp_detail_data = useMlStateStore().exp_detail_data as expInf
+watch(exp_detail_data, (newVal) => {
+    initChart(newVal)
 })
 
 let chart: ECharts | undefined
 const chartRef = ref<HTMLDivElement>()
 
-onMounted(() => {
-    initChart()
-})
+// onMounted(() => {
+//     initChart()
+// })
 
 onUnmounted(() => {
     if (!chart) {
@@ -40,12 +48,17 @@ onUnmounted(() => {
     chart.dispose()
     chart = undefined
 })
-let initChart = () => {
-    var dataset = ['abalone', 'abalone']
-    // prettier-ignore
-    var metrics = ['RMSE', 'MAE'];
-    // prettier-ignore
-    var data = [[0, 0, 0.011], [1, 1, 0.1]];
+let initChart = (newVal: {
+    dataset: string
+    metrics: { name: string; value: string }[]
+}) => {
+    var dataset = [newVal.dataset, newVal.dataset]
+    var metrics: any[] = []
+    var data: any[][] = []
+    newVal.metrics.map((item, index) => {
+        metrics.push(item.name)
+        data.push([index, index, item.value])
+    })
     chart = init(chartRef.value!, 'macarons')
     const option: EChartsOption = {
         tooltip: {},
