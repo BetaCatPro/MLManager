@@ -99,23 +99,23 @@ let changeDataset = () => {
 
     .wrapper-card {
         display: flex;
-        align-items: center;
         justify-content: space-between;
-        flex-wrap: wrap;
-        height: 100%;
+        align-items: center;
         padding: 10px;
+        height: 100%;
+        flex-wrap: wrap;
 
         .box-card {
             overflow: auto;
+            margin-bottom: 5px;
             width: 33%;
             height: 70%;
-            margin-bottom: 5px;
 
             .inner-desc {
-                color: rgb(47, 41, 174);
-                font-size: 19px;
                 margin-bottom: 15px;
+                font-size: 19px;
                 text-align: center;
+                color: rgb(47 41 174);
             }
         }
     }
