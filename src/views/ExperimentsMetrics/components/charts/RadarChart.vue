@@ -7,9 +7,11 @@
 </template>
 
 <script lang="ts" setup>
-import { ECharts, EChartsOption, init } from 'echarts'
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ECharts, EChartOption, init } from 'echarts'
+import { ref, onUnmounted, watch } from 'vue'
 import 'echarts/theme/macarons'
+import { useMlStateStore } from '@/stores/mlstore'
+import { storeToRefs } from 'pinia'
 
 const props = defineProps({
     className: {
@@ -22,15 +24,28 @@ const props = defineProps({
     },
     height: {
         type: String,
-        default: '550px'
+        default: '400px'
+    },
+    ratio: {
+        type: Number,
+        default: 0.005,
+        require: true
     }
 })
 
 let chart: ECharts | undefined
 const chartRef = ref<HTMLDivElement>()
 
-onMounted(() => {
-    initChart()
+// onMounted(() => {
+//     initChart()
+// })
+
+const { exp_stat } = storeToRefs(useMlStateStore())
+
+watch(exp_stat, (newVal, oldVal) => {
+    let target = newVal.filter((item) => item.ratio === props.ratio)
+    initChart(target)
+    console.log(oldVal)
 })
 
 onUnmounted(() => {
@@ -40,39 +55,41 @@ onUnmounted(() => {
     chart.dispose()
     chart = undefined
 })
-let initChart = () => {
+let initChart = (data: any) => {
     chart = init(chartRef.value!, 'macarons')
-    const option: EChartsOption = {
+
+    // let metrics =
+
+    let co_data_value: any[] = []
+    let m5p_data_value: any[] = []
+
+    let indicators: { name: any; max: number }[] = []
+
+    data.map((item: { [x: string]: any }) => {
+        co_data_value.push(item['co_train_rmse'].toFixed(4))
+        m5p_data_value.push(item['m5p_rmse'].toFixed(4))
+
+        indicators.push({
+            name: item.dataset,
+            max: 0.3
+        })
+    })
+
+    const option: EChartOption = {
         legend: {
-            data: ['RMSE', 'MAE']
+            data: ['co_train_rmse', 'm5p_rmse']
         },
         radar: {
             // shape: 'circle',
-            indicator: [
-                { name: 'Sales', max: 6500 },
-                { name: 'Administration', max: 16000 },
-                { name: 'Information Technology', max: 30000 },
-                { name: 'Customer Support', max: 38000 },
-                { name: 'Development', max: 52000 },
-                { name: 'Marketing', max: 25000 },
-                { name: 'Markeasting', max: 15000 },
-                { name: 'Marketsing', max: 45000 },
-                { name: 'Marsketing', max: 27000 },
-                { name: 'Marsketing', max: 21000 },
-                { name: 'Marketsing', max: 27000 },
-                { name: 'Marsketing', max: 29000 },
-                { name: 'Marsketing', max: 30000 },
-                { name: 'Marketinsg', max: 31000 }
-            ]
+            indicator: indicators
         },
         series: [
             {
-                name: 'Budget vs spending',
                 type: 'radar',
                 data: [
                     {
-                        value: [4200, 3000, 20000, 35000, 50000, 18000],
-                        name: 'RMSE',
+                        value: co_data_value,
+                        name: 'co-train-rmse',
                         label: {
                             show: true,
                             formatter: function (params: any) {
@@ -81,8 +98,8 @@ let initChart = () => {
                         }
                     },
                     {
-                        value: [5000, 14000, 28000, 26000, 42000, 21000],
-                        name: 'MAE',
+                        value: m5p_data_value,
+                        name: 'm5p-rmse',
                         symbol: 'rect',
                         symbolSize: 5,
                         lineStyle: {

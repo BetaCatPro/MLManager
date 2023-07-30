@@ -22,7 +22,7 @@
             <el-divider />
             <el-row class="refresh-row" :gutter="10">
                 <el-col :span="2">
-                    <el-button type="primary">
+                    <el-button type="primary" @click="refreshData">
                         <el-icon class="el-icon--right">
                             <Refresh class="refresh" /> </el-icon
                         >刷新
@@ -39,6 +39,7 @@
                         v-model="exp_dataset.data_set"
                         clearable
                         placeholder="选择数据集"
+                        @change="changeDataset"
                     >
                         <el-option
                             style="text-indent: 1em"
@@ -54,6 +55,7 @@
                         v-model="exp_dataset.data_radio"
                         clearable
                         placeholder="选择标记数据划分比例"
+                        @change="changeRatio"
                     >
                         <el-option
                             style="text-indent: 1em"
@@ -174,7 +176,8 @@
                     background
                     layout="prev, pager, next"
                     :default-page-size="6"
-                    :total="20"
+                    :total="totalPage"
+                    @current-change="handleCurrentChange"
                 />
             </el-card>
         </div>
@@ -216,7 +219,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import {
     Refresh,
     Timer,
@@ -230,6 +233,7 @@ import {
 import { useRouter } from 'vue-router'
 import {
     deleteExpDetail,
+    getExpDataset,
     getExpsList,
     updateExpDetail
 } from '@/api/experiments'
@@ -238,8 +242,8 @@ import { ElMessage } from 'element-plus'
 const router = useRouter()
 
 let exp_dataset = reactive({
-    data_set: '',
-    data_radio: '',
+    data_set: 'abalone',
+    data_radio: 0.005,
     data_set_options: [
         {
             label: 'abalone',
@@ -250,18 +254,13 @@ let exp_dataset = reactive({
         {
             label: '0.005',
             value: '0.005'
-        },
-        {
-            label: '0.025',
-            value: '0.025'
-        },
-        {
-            label: '0.050',
-            value: '0.050'
         }
     ]
 })
 
+let totalPage = ref(0)
+
+const curWrapperExpId = ref()
 const expName = ref('')
 const expDesc = ref('')
 let dialogData = reactive({
@@ -280,6 +279,59 @@ let dialogData = reactive({
     editMsg: ''
 })
 
+let getExpsInfoList = async (options: {
+    dataset: string
+    data_ratio: number
+    page: number
+}) => {
+    const { dataset, data_ratio, page } = options
+    tableData.value = []
+    let res = await getExpsList('/experiment_list', {
+        master_exp_id: curWrapperExpId.value,
+        data_set: dataset,
+        data_ratio: data_ratio,
+        cur_page: page
+    })
+    totalPage.value = res.data.msg.total
+    res.data.msg.list.map((item: any) => {
+        tableData.value.push({
+            id: item.id,
+            name: item.name,
+            created: item.created,
+            duration: item.duration,
+            source: item.dataset,
+            version: item.version,
+            models: item.dataset
+        })
+    })
+}
+
+onMounted(() => {
+    getExpDataset('/exp_dataset').then((res) => {
+        exp_dataset.data_set_options = res.data.msg.dataset.map((item: any) => {
+            return { lable: item, value: item }
+        })
+        exp_dataset.data_ratio_options = res.data.msg.ratio.map((item: any) => {
+            return { lable: item, value: item }
+        })
+    })
+})
+
+let changeDataset = () => {
+    getExpsInfoList({
+        dataset: exp_dataset.data_set,
+        data_ratio: exp_dataset.data_radio,
+        page: 0
+    })
+}
+let changeRatio = () => {
+    getExpsInfoList({
+        dataset: exp_dataset.data_set,
+        data_ratio: exp_dataset.data_radio,
+        page: 0
+    })
+}
+
 interface ExpList {
     id: string
     name: string
@@ -293,23 +345,21 @@ interface ExpList {
 let tableData = ref<Array<ExpList>>([])
 
 let getExpInfo = async (target: any) => {
+    curWrapperExpId.value = target.id
     expName.value = target.name
     expDesc.value = target.desc
-
-    tableData.value = []
-    let res = await getExpsList('/experiment_list', {
-        master_exp_id: target.id
+    getExpsInfoList({
+        dataset: exp_dataset.data_set,
+        data_ratio: exp_dataset.data_radio,
+        page: 0
     })
-    res.data.map((item: any) => {
-        tableData.value.push({
-            id: item.pk,
-            name: item.fields.name,
-            created: item.fields.time,
-            duration: item.fields.duration,
-            source: item.fields.dataset,
-            version: item.fields.ratio,
-            models: item.fields.dataset
-        })
+}
+
+let handleCurrentChange = (cur_page: number) => {
+    getExpsInfoList({
+        dataset: exp_dataset.data_set,
+        data_ratio: exp_dataset.data_radio,
+        page: cur_page - 1
     })
 }
 
@@ -359,9 +409,20 @@ let confirmUpdate = async () => {
     dialogData.dialogEditVisible = false
 }
 
+let refreshData = () => {
+    getExpsInfoList({
+        dataset: exp_dataset.data_set,
+        data_ratio: exp_dataset.data_radio,
+        page: 0
+    })
+}
+
 let handleAna = () => {
     router.push({
-        path: `/metrics`
+        path: `/metrics/${curWrapperExpId.value}`
+        // query: {
+        //     id: curWrapperExpId.value
+        // }
     })
 }
 </script>

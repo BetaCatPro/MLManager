@@ -7,6 +7,7 @@ from django.views import View
 from django.core.serializers import serialize
 from django.http import JsonResponse, HttpResponse, Http404, StreamingHttpResponse
 from django.http import QueryDict
+from django.db.models import Count, Avg
 
 from api.models import AlgExperiments, AlgExperimentsList, AlgMetrics, AlgModels, AlgParameters
 
@@ -117,13 +118,28 @@ class ExperimentsListView(View):
     def get(self, request):
         master_exp_id = request.GET.get('master_exp_id', 0)
         dataset = request.GET.get('data_set', 'abalone')
-        ratio = request.GET.get('data_ratio', '0.005')
+        ratio = request.GET.get('data_ratio', 0.005)
         
-        page = request.GET.get('cur_page', 0)
+        page = int(request.GET.get('cur_page', 0))
         
         exp_list = AlgExperimentsList.objects.filter(experiment=master_exp_id, dataset=dataset, ratio=ratio)[6*page:6*page+6]
-        resp_data = serialize('json', exp_list)
-        return HttpResponse(resp_data, "application/json")
+        # resp_data = serialize('json', exp_list)
+        
+        resp_data = {
+            'total': exp_list.count(),
+            'list': [{
+                    'id': item.id,
+                    'dataset': item.dataset,
+                    'name': item.name,
+                    'created': item.time,
+                    'duration': item.duration,
+                    'source': item.dataset,
+                    'version': item.ratio
+                } for item in exp_list]
+            }
+        
+        # return HttpResponse(resp_data, "application/json")
+        return JsonResponse({'status': 200, 'code': 10000, 'msg': resp_data}, safe=False)
     
     def delete(self, request):
         delete = QueryDict(request.body)
@@ -180,49 +196,62 @@ class ExperimentsDetailView(View):
         return JsonResponse({'status': 200, 'code': 10000, 'msg': exp_detail_data}, safe=False)
     
     
-class ExpParametersView(View):
+class ExpDatasetAndRatioView(View):
     def get(self, request):
-        exp_list_detail_id = request.GET.get('exp_detail_id')
-        params = AlgParameters.objects.filter(exp_id=exp_list_detail_id)
+        datasets = AlgExperimentsList.objects.values('dataset').annotate(count=Count('id'))
+        ratios = AlgExperimentsList.objects.values('ratio').annotate(count=Count('id'))
         
         resp_data = {
-            'name': params.name,
-            'value': params.value
+            'dataset': [dataset['dataset'] for dataset in datasets],
+            'ratio': [ratio['ratio'] for ratio in ratios]
         }
         return JsonResponse({'status': 200, 'code': 10000, 'msg': resp_data}, safe=False)
     
-class ExpMetricsView(View):
+class ExpStatisticView(View):
     def get(self, request):
-        exp_list_detail_id = request.GET.get('exp_detail_id')
-        params = AlgMetrics.objects.filter(exp_id=exp_list_detail_id)
+        exp_id = request.GET.get('exp_id')
         
-        resp_data = {
-            'name': params.name,
-            'value': params.value
-        }
-        return JsonResponse({'status': 200, 'code': 10000, 'msg': resp_data}, safe=False)
+        result = []
+        allDatasetList = AlgExperimentsList.objects.filter(experiment=exp_id).values('dataset').distinct()
+        
+        for ratio in [0.005, 0.025,0.05]:
+            for dataset in allDatasetList:
+                perDataset = AlgExperimentsList.objects.filter(experiment=exp_id, dataset=dataset.get('dataset'),ratio=ratio)
+                
+                data_li_list = [data.id for data in perDataset]
+                # for data in perDataset:
+                metrics = AlgMetrics.objects.filter(exp_id__in=data_li_list).values('name').annotate(mse_mean=Avg('value'))
+                tmp_obj = {
+                    'ratio': ratio,
+                    'dataset': dataset.get('dataset'),
+                    'co-train-rmse': metrics[0].get('mse_mean'),
+                    'm5p-rmse':metrics[1].get('mse_mean')
+                }                
+                result.append(tmp_obj)
+        
+        return JsonResponse({'status': 200, 'code': 10000, 'msg': result}, safe=False)
 
 
-class DownloadModelsView(View):
+class PerExpStatisticView(View):
     def get(self, request):
-        try:
-            pass
-            # history = request.GET.get('history', 0)
-            # self_ver_history = request.GET.get('self_history', '')
-
-            # if self_ver_history:
-            #     res = SelfHistory.objects.filter(history=self_ver_history).first()
-            # else:
-            #     res = ExpertGraHistory.objects.filter(history=int(history)).first()
-            # weight = [res.APA_weight, res.Arc_weight, res.Variance_weight, res.SA_weight, res.RMS_weight]
-            # xgboost_result(weight)
-            # try:
-            #     file_path = file_pathCSV
-            #     response = StreamingHttpResponse(open(file_path, 'rb'))
-            #     response['content_type'] = "application/octet-stream"
-            #     response['Content-Disposition'] = 'attachment; filename=' + os.path.basename(file_path)
-            #     return response
-            # except Exception as e:
-            #     raise Http404
-        except Exception:
-            raise Http404
+        exp_id = request.GET.get('exp_id')
+        
+        result = []
+        allDatasetList = AlgExperimentsList.objects.filter(experiment=exp_id).values('dataset').distinct()
+        
+        for ratio in [0.005, 0.025,0.05]:
+            for dataset in allDatasetList:
+                perDataset = AlgExperimentsList.objects.filter(experiment=exp_id, dataset=dataset.get('dataset'),ratio=ratio)
+                
+                data_li_list = [data.id for data in perDataset]
+                # for data in perDataset:
+                metrics = AlgMetrics.objects.filter(exp_id__in=data_li_list).values('name').annotate(mse_mean=Avg('value'))
+                tmp_obj = {
+                    'ratio': ratio,
+                    'dataset': dataset.get('dataset'),
+                    'co-train-rmse': metrics[0].get('mse_mean'),
+                    'm5p-rmse':metrics[1].get('mse_mean')
+                }                
+                result.append(tmp_obj)
+        
+        return JsonResponse({'status': 200, 'code': 10000, 'msg': result}, safe=False)

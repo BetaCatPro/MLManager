@@ -8,8 +8,10 @@
 
 <script lang="ts" setup>
 import { ECharts, EChartsOption, init } from 'echarts'
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onUnmounted, watch } from 'vue'
 import 'echarts/theme/macarons'
+import { useMlStateStore } from '@/stores/mlstore'
+import { storeToRefs } from 'pinia'
 
 const props = defineProps({
     className: {
@@ -23,14 +25,26 @@ const props = defineProps({
     height: {
         type: String,
         default: '300px'
+    },
+    ratio: {
+        type: Number,
+        require: true,
+        default: 0.005
     }
 })
 
 let chart: ECharts | undefined
 const chartRef = ref<HTMLDivElement>()
 
-onMounted(() => {
-    initChart()
+const { exp_per_stat } = storeToRefs(useMlStateStore())
+
+// onMounted(() => {
+//     initChart()
+// })
+
+watch(exp_per_stat, (newVal, oldVal) => {
+    initChart(newVal)
+    console.log(oldVal)
 })
 
 onUnmounted(() => {
@@ -40,16 +54,29 @@ onUnmounted(() => {
     chart.dispose()
     chart = undefined
 })
-let initChart = () => {
+let initChart = (target: any) => {
     chart = init(chartRef.value!, 'macarons')
+
+    let res = target.res.filter(
+        (item: { ratio: number }) => item.ratio === props.ratio
+    )[0].result
+
+    let co_rmse = res.map((item: { co_train_rmse: string }) =>
+        parseFloat(item.co_train_rmse).toFixed(3)
+    )
+    let m5p_rmse = res.map((item: { m5p_rmse: string }) =>
+        parseFloat(item.m5p_rmse).toFixed(3)
+    )
+
     const option: EChartsOption = {
-        title: {
-            text: 'Temperature Change in the Coming Week'
-        },
         tooltip: {
             trigger: 'axis'
         },
-        legend: {},
+        legend: {
+            orient: 'vertical',
+            x: 'top',
+            y: 'left'
+        },
         toolbox: {
             show: true,
             feature: {
@@ -63,21 +90,35 @@ let initChart = () => {
             }
         },
         xAxis: {
+            name: '实验次数',
+            nameRotate: '0',
+            nameLocation: 'center',
+            nameGap: 30,
+            nameTextStyle: {
+                padding: [0, 0, 0, 35]
+            },
             type: 'category',
             boundaryGap: false,
-            data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+            data: new Array(res.length).fill(0).map((item, index) => index + 1)
         },
         yAxis: {
+            name: 'RMSE',
+            nameRotate: '90',
+            nameLocation: 'center',
+            nameGap: 30,
+            nameTextStyle: {
+                padding: [0, 0, 0, 35]
+            },
             type: 'value',
             axisLabel: {
-                formatter: '{value} °C'
+                formatter: '{value}'
             }
         },
         series: [
             {
-                name: 'Highest',
+                name: '协同训练',
                 type: 'line',
-                data: [10, 11, 13, 11, 12, 12, 9],
+                data: co_rmse,
                 markPoint: {
                     data: [
                         { type: 'max', name: 'Max' },
@@ -89,12 +130,9 @@ let initChart = () => {
                 }
             },
             {
-                name: 'Lowest',
+                name: 'M5P学习器',
                 type: 'line',
-                data: [1, -2, 2, 5, 3, 2, 0],
-                markPoint: {
-                    data: [{ name: '周最低', value: -2, xAxis: 1, yAxis: -1.5 }]
-                },
+                data: m5p_rmse,
                 markLine: {
                     data: [
                         { type: 'average', name: 'Avg' },
