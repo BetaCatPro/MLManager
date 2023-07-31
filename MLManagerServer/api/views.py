@@ -220,12 +220,12 @@ class ExpStatisticView(View):
                 
                 data_li_list = [data.id for data in perDataset]
                 # for data in perDataset:
-                metrics = AlgMetrics.objects.filter(exp_id__in=data_li_list).values('name').annotate(mse_mean=Avg('value'))
+                metrics = AlgMetrics.objects.filter(exp_id__in=data_li_list, value__lt=0.5).values('name').annotate(mse_mean=Avg('value'))
                 tmp_obj = {
                     'ratio': ratio,
                     'dataset': dataset.get('dataset'),
-                    'co-train-rmse': metrics[0].get('mse_mean'),
-                    'm5p-rmse':metrics[1].get('mse_mean')
+                    'co_train_rmse': metrics[0].get('mse_mean'),
+                    'm5p_rmse':metrics[1].get('mse_mean')
                 }                
                 result.append(tmp_obj)
         
@@ -235,23 +235,30 @@ class ExpStatisticView(View):
 class PerExpStatisticView(View):
     def get(self, request):
         exp_id = request.GET.get('exp_id')
+        dataset = request.GET.get('dataset')
         
-        result = []
-        allDatasetList = AlgExperimentsList.objects.filter(experiment=exp_id).values('dataset').distinct()
+        result = {
+            'dataset': dataset,
+            'res': []
+        }
         
-        for ratio in [0.005, 0.025,0.05]:
-            for dataset in allDatasetList:
-                perDataset = AlgExperimentsList.objects.filter(experiment=exp_id, dataset=dataset.get('dataset'),ratio=ratio)
-                
-                data_li_list = [data.id for data in perDataset]
-                # for data in perDataset:
-                metrics = AlgMetrics.objects.filter(exp_id__in=data_li_list).values('name').annotate(mse_mean=Avg('value'))
+        for ratio in [0.005, 0.025, 0.05]:
+            inner_res = []
+            perDataset = AlgExperimentsList.objects.filter(experiment=exp_id, dataset=dataset, ratio=ratio)
+            
+            data_li_list = [data.id for data in perDataset]
+            co_result = AlgMetrics.objects.filter(exp_id__in=data_li_list, name='co_train_rmse', value__lt=0.5)
+            m5p_result = AlgMetrics.objects.filter(exp_id__in=data_li_list, name='m5p_rmse', value__lt=0.5)
+            
+            for co, m5p in zip(co_result, m5p_result):
                 tmp_obj = {
-                    'ratio': ratio,
-                    'dataset': dataset.get('dataset'),
-                    'co-train-rmse': metrics[0].get('mse_mean'),
-                    'm5p-rmse':metrics[1].get('mse_mean')
+                    'co_train_rmse': co.value,
+                    'm5p_rmse': m5p.value
                 }                
-                result.append(tmp_obj)
-        
+                inner_res.append(tmp_obj)
+                
+            result.get('res').append({
+                'ratio': ratio,
+                'result': inner_res
+            })
         return JsonResponse({'status': 200, 'code': 10000, 'msg': result}, safe=False)
